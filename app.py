@@ -10,7 +10,7 @@ load_dotenv()
 client = genai.Client()
 
 # --- 2. CONFIGURACIÓN DE PÁGINA Y CSS ---
-st.set_page_config(page_title="NM Viajes - Home", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="NM Viajes - Home", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
     <style>
@@ -28,7 +28,35 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. FONDO: WEB EXISTENTE ---
+# --- 3. PANEL LATERAL (SIDEBAR): CONTROL DE IA ---
+with st.sidebar:
+    st.header("⚙️ Panel de Control IA")
+    st.caption("Configura el cerebro del asistente")
+    
+    # Widgets interactivos
+    temperatura = st.slider("Creatividad (Temperatura)", 0.0, 1.0, 0.7)
+    modo = st.selectbox("Personalidad del Agente", ["Asesor Estándar", "Guía Extremo", "Agente VIP Lujo"])
+    
+    st.divider()
+    st.markdown("**¿Qué hace la temperatura?**\n* **0.0:** Respuestas robóticas y directas.\n* **1.0:** Respuestas muy creativas e impredecibles.")
+    
+    if st.button("🗑️ Limpiar Historial"):
+        if "chat_session" in st.session_state:
+            del st.session_state.chat_session
+
+# Lógica para detectar si cambiaron las configuraciones
+if "current_modo" not in st.session_state:
+    st.session_state.current_modo = modo
+    st.session_state.current_temp = temperatura
+
+if st.session_state.current_modo != modo or st.session_state.current_temp != temperatura:
+    # Si detecta un cambio, actualiza el estado y borra la sesión actual
+    st.session_state.current_modo = modo
+    st.session_state.current_temp = temperatura
+    if "chat_session" in st.session_state:
+        del st.session_state.chat_session
+
+# --- 4. FONDO: WEB EXISTENTE ---
 st.markdown("<div class='fake-header'>🔴 nmviajes</div>", unsafe_allow_html=True)
 st.markdown("---")
 st.markdown("""
@@ -45,60 +73,58 @@ with c1: st.markdown("<div class='card'><h3>Cusco</h3><p>Paquete 4D/3N<br><b>Des
 with c2: st.markdown("<div class='card'><h3>Madrid</h3><p>Vuelo Directo<br><b>Desde US$ 1,040</b></p></div>", unsafe_allow_html=True)
 with c3: st.markdown("<div class='card'><h3>Tampa</h3><p>Vuelo + Auto<br><b>Desde US$ 523</b></p></div>", unsafe_allow_html=True)
 
-# --- 4. CHATBOT FLOTANTE CON MEMORIA Y CLIENTE PERSISTENTE ---
+# --- 5. CHATBOT FLOTANTE CON IA ---
 with st.popover("💬"):
-    st.markdown("#### ✈️ AI Concierge")
+    st.markdown(f"#### ✈️ {modo}") # El título cambia según el modo
     st.divider()
     
-    # Verificamos si la sesión ya existe, si no, creamos todo desde cero
     if "chat_session" not in st.session_state:
-        # Re-inicializamos el cliente aquí para asegurar que esté abierto
         st.session_state.client = genai.Client()
         
-        # 1. Creamos la personalidad con LIMITACIÓN DE DOMINIO AFINADA
+        # Asignamos el System Prompt según la elección del Sidebar
+        regla_base = " REGLA ESTRICTA: Solo puedes hablar de viajes y turismo de NM Viajes. Si preguntan otra cosa, niégate educadamente."
+        
+        if modo == "Asesor Estándar":
+            sys_prompt = "Eres un asesor de viajes amable y paciente de NM Viajes. Recomiendas paquetes familiares y usas emojis estándar. 🌴" + regla_base
+            saludo = "¡Hola! Soy tu asesor virtual de NM Viajes 🌴. ¿A dónde quieres viajar hoy?"
+        elif modo == "Guía Extremo":
+            sys_prompt = "Eres un guía de deportes extremos de NM Viajes. Tutéalo, usa jerga de mochileros, ten mucha energía y recomienda full adrenalina. 🧗‍♂️🌋" + regla_base
+            saludo = "¡Qué tal viajero! 🎒 Listo para la aventura extrema? ¿A dónde nos fugamos?"
+        else: # Agente VIP Lujo
+            sys_prompt = "Eres un agente VIP de NM Viajes. Eres extremadamente formal, elegante y sofisticado. Trata al usuario de 'Usted' y recomienda solo lujos de 5 estrellas y primera clase. 🥂✨" + regla_base
+            saludo = "Bienvenido a NM Viajes VIP. Es un placer atenderle. ¿Qué destino exclusivo desea explorar hoy? 🥂"
+        
+        # Inyectamos el prompt y la temperatura
         configuracion = types.GenerateContentConfig(
-            system_instruction=(
-                "Eres un asesor de viajes experto, amable y persuasivo de la agencia peruana NM Viajes. "
-                "Tu misión exclusiva es ayudar a planificar vacaciones, vender vuelos y paquetes turísticos. "
-                "REGLA ESTRICTA: Si el usuario te pregunta sobre temas ajenos (como matemáticas, programación, cocina, deportes, etc.), "
-                "debes negarte educadamente diciendo: 'Lo siento, como asesor de NM Viajes solo puedo ayudarte a planear tu próxima gran aventura. ✈️'. "
-                "EXCEPCIÓN: Sí tienes permitido saludar, mantener los modales y responder preguntas sobre el historial o el contexto de esta misma conversación."
-            )
+            system_instruction=sys_prompt,
+            temperature=temperatura
         )
         
         st.session_state.chat_session = st.session_state.client.chats.create(
             model='gemini-2.5-flash', 
             config=configuracion
         )
-        st.session_state.messages = [{"role": "assistant", "content": "¡Hola! Soy tu asesor virtual de NM Viajes 🌴. ¿A dónde quieres viajar hoy?"}]
+        st.session_state.messages = [{"role": "assistant", "content": saludo}]
         
     chat_box = st.container(height=320, border=False)
     
-    # Dibujar historial
     for msg in st.session_state.messages:
         with chat_box:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
                 
-    # Capturar nueva interacción
     if prompt := st.chat_input("Escribe tu duda aquí..."):
-        
-        # Guardar en memoria y mostrar pregunta
         st.session_state.messages.append({"role": "user", "content": prompt})
         with chat_box:
             with st.chat_message("user"):
                 st.markdown(prompt)
                 
-            # Procesar con la IA
             with st.chat_message("assistant"):
                 try:
-                    # Usamos el chat_session que ya definimos arriba
                     response = st.session_state.chat_session.send_message(prompt)
                     texto_ia = response.text
                 except Exception as e:
                     texto_ia = f"Error: {e}. Intenta recargar la página."
-
                 st.markdown(texto_ia)
         
-        # Guardar respuesta en la memoria de la sesión
         st.session_state.messages.append({"role": "assistant", "content": texto_ia})
