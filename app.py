@@ -3,11 +3,11 @@ import time
 import os
 from dotenv import load_dotenv
 from google import genai
-from google.genai import types  # Importante para poder configurar la personalidad
+from google.genai import types
 
 # --- 1. CONFIGURACIÓN DE IA ---
 load_dotenv()
-client = genai.Client() # Lee automáticamente GEMINI_API_KEY de tu .env
+client = genai.Client()
 
 # --- 2. CONFIGURACIÓN DE PÁGINA Y CSS ---
 st.set_page_config(page_title="NM Viajes - Home", layout="wide", initial_sidebar_state="collapsed")
@@ -45,57 +45,60 @@ with c1: st.markdown("<div class='card'><h3>Cusco</h3><p>Paquete 4D/3N<br><b>Des
 with c2: st.markdown("<div class='card'><h3>Madrid</h3><p>Vuelo Directo<br><b>Desde US$ 1,040</b></p></div>", unsafe_allow_html=True)
 with c3: st.markdown("<div class='card'><h3>Tampa</h3><p>Vuelo + Auto<br><b>Desde US$ 523</b></p></div>", unsafe_allow_html=True)
 
-# --- 4. CHATBOT FLOTANTE CON IA REAL ---
+# --- 4. CHATBOT FLOTANTE CON MEMORIA Y CLIENTE PERSISTENTE ---
 with st.popover("💬"):
     st.markdown("#### ✈️ AI Concierge")
     st.divider()
     
-    # Memoria del chat
-    if "messages" not in st.session_state:
+    # Verificamos si la sesión ya existe, si no, creamos todo desde cero
+    if "chat_session" not in st.session_state:
+        # Re-inicializamos el cliente aquí para asegurar que esté abierto
+        st.session_state.client = genai.Client()
+        
+        # 1. Creamos la personalidad con LIMITACIÓN DE DOMINIO AFINADA
+        configuracion = types.GenerateContentConfig(
+            system_instruction=(
+                "Eres un asesor de viajes experto, amable y persuasivo de la agencia peruana NM Viajes. "
+                "Tu misión exclusiva es ayudar a planificar vacaciones, vender vuelos y paquetes turísticos. "
+                "REGLA ESTRICTA: Si el usuario te pregunta sobre temas ajenos (como matemáticas, programación, cocina, deportes, etc.), "
+                "debes negarte educadamente diciendo: 'Lo siento, como asesor de NM Viajes solo puedo ayudarte a planear tu próxima gran aventura. ✈️'. "
+                "EXCEPCIÓN: Sí tienes permitido saludar, mantener los modales y responder preguntas sobre el historial o el contexto de esta misma conversación."
+            )
+        )
+        
+        st.session_state.chat_session = st.session_state.client.chats.create(
+            model='gemini-2.5-flash', 
+            config=configuracion
+        )
         st.session_state.messages = [{"role": "assistant", "content": "¡Hola! Soy tu asesor virtual de NM Viajes 🌴. ¿A dónde quieres viajar hoy?"}]
         
     chat_box = st.container(height=320, border=False)
     
-    # Dibujar mensajes previos
-    with chat_box:
-        for msg in st.session_state.messages:
+    # Dibujar historial
+    for msg in st.session_state.messages:
+        with chat_box:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
                 
-    # Capturar nueva pregunta
+    # Capturar nueva interacción
     if prompt := st.chat_input("Escribe tu duda aquí..."):
         
-        # 1. Guardar y mostrar pregunta del usuario
+        # Guardar en memoria y mostrar pregunta
         st.session_state.messages.append({"role": "user", "content": prompt})
         with chat_box:
             with st.chat_message("user"):
                 st.markdown(prompt)
                 
-        # 2. Generar y mostrar respuesta de la IA
-        with chat_box:
+            # Procesar con la IA
             with st.chat_message("assistant"):
-                message_placeholder = st.empty()
-                
                 try:
-                    # Conexión con personalidad inyectada
-                    response = client.models.generate_content(
-                        model='gemini-flash-latest', 
-                        contents=prompt,
-                        config=types.GenerateContentConfig(
-                            system_instruction="Eres un asesor de viajes experto, amable y persuasivo que trabaja para la agencia peruana NM Viajes. Tu objetivo es ayudar a los clientes a planificar sus vacaciones ideales. Responde siempre de forma entusiasta, usa emojis relacionados a viajes (✈️, 🌴, 🎒) y sugiere destinos como Cusco, Madrid o Tampa si el cliente no sabe a dónde ir. Mantén tus respuestas cortas y precisas."
-                        )
-                    )
+                    # Usamos el chat_session que ya definimos arriba
+                    response = st.session_state.chat_session.send_message(prompt)
                     texto_ia = response.text
                 except Exception as e:
-                    texto_ia = f"Hubo un error de conexión con el servidor: {e}"
+                    texto_ia = f"Error: {e}. Intenta recargar la página."
 
-                # Efecto visual de escritura
-                texto_mostrado = ""
-                for chunk in texto_ia.split():
-                    texto_mostrado += chunk + " "
-                    time.sleep(0.04)
-                    message_placeholder.markdown(texto_mostrado + "▌")
-                message_placeholder.markdown(texto_ia)
+                st.markdown(texto_ia)
         
-        # 3. Guardar la respuesta de la IA en la memoria
+        # Guardar respuesta en la memoria de la sesión
         st.session_state.messages.append({"role": "assistant", "content": texto_ia})
