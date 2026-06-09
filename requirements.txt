@@ -4,3 +4,5 @@ langchain-google-genai
 chromadb
 sentence-transformers
 pandas
+google-genai
+python-dotenv

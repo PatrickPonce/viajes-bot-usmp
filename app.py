@@ -1,15 +1,37 @@
 import streamlit as st
-import time
 import os
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-# --- 1. CONFIGURACIÓN DE IA ---
+# --- IMPORTACIONES PARA RAG (LANGCHAIN + CHROMA) ---
+from langchain_core.documents import Document
+from langchain_chroma import Chroma
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+# --- 1. CONFIGURACIÓN INICIAL Y CREDENCIALES ---
 load_dotenv()
+# Langchain necesita la variable GOOGLE_API_KEY, así que la igualamos a tu llave
+os.environ["GOOGLE_API_KEY"] = os.getenv("GEMINI_API_KEY") 
 client = genai.Client()
 
-# --- 2. CONFIGURACIÓN DE PÁGINA Y CSS ---
+# --- 2. INICIALIZAR BASE DE DATOS RAG (En Caché) ---
+# Usamos @st.cache_resource para que ChromaDB se cree solo una vez y no vuelva 
+# a vectorizar los textos cada vez que recargas la página (ahorra tiempo y dinero)
+@st.cache_resource
+def iniciar_base_conocimiento():
+    documentos = [
+        Document(page_content="El paquete a Cusco cuesta $259 e incluye 4 días y 3 noches, visita a Machu Picchu y tren panorámico."),
+        Document(page_content="El vuelo a Madrid directo cuesta $1,040 y sale todos los viernes a las 8:00 PM."),
+        Document(page_content="Para viajar a Tampa desde Lima necesitas visa americana vigente. El paquete cuesta $523 e incluye auto alquilado."),
+        Document(page_content="El paquete a Iquitos cuesta $300, incluye 3 días en un lodge en la selva, paseos en canoa y no requiere visa.")
+    ]
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+    return Chroma.from_documents(documents=documentos, embedding=embeddings, collection_name="catalogo_viajes_nm")
+
+vectorstore = iniciar_base_conocimiento()
+
+# --- 3. CONFIGURACIÓN DE PÁGINA Y CSS ---
 st.set_page_config(page_title="NM Viajes - Home", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
@@ -28,83 +50,61 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. PANEL LATERAL (SIDEBAR): CONTROL DE IA ---
+# --- 4. PANEL LATERAL (SIDEBAR) ---
 with st.sidebar:
     st.header("⚙️ Panel de Control IA")
-    st.caption("Configura el cerebro del asistente")
-    
-    # Widgets interactivos
-    temperatura = st.slider("Creatividad (Temperatura)", 0.0, 1.0, 0.7)
+    temperatura = st.slider("Creatividad (Temperatura)", 0.0, 1.0, 0.2) # Bajamos la temperatura para que RAG sea más exacto
     modo = st.selectbox("Personalidad del Agente", ["Asesor Estándar", "Guía Extremo", "Agente VIP Lujo"])
-    
     st.divider()
-    st.markdown("**¿Qué hace la temperatura?**\n* **0.0:** Respuestas robóticas y directas.\n* **1.0:** Respuestas muy creativas e impredecibles.")
-    
     if st.button("🗑️ Limpiar Historial"):
         if "chat_session" in st.session_state:
             del st.session_state.chat_session
 
-# Lógica para detectar si cambiaron las configuraciones
 if "current_modo" not in st.session_state:
     st.session_state.current_modo = modo
     st.session_state.current_temp = temperatura
 
 if st.session_state.current_modo != modo or st.session_state.current_temp != temperatura:
-    # Si detecta un cambio, actualiza el estado y borra la sesión actual
     st.session_state.current_modo = modo
     st.session_state.current_temp = temperatura
     if "chat_session" in st.session_state:
         del st.session_state.chat_session
 
-# --- 4. FONDO: WEB EXISTENTE ---
+# --- 5. FONDO: WEB EXISTENTE ---
 st.markdown("<div class='fake-header'>🔴 nmviajes</div>", unsafe_allow_html=True)
 st.markdown("---")
 st.markdown("""
 <div class='fake-search'>
     <h2 style='color: #111827;'>Descubre tu próximo destino</h2>
-    <div style='background: white; padding: 15px; border-radius: 50px; display: inline-block; width: 60%; box-shadow: 0 2px 10px rgba(0,0,0,0.05);'>
-        📍 Ida y vuelta &nbsp;&nbsp;|&nbsp;&nbsp; 🛫 Lima &nbsp;&nbsp;|&nbsp;&nbsp; 🛬 Destino &nbsp;&nbsp;|&nbsp;&nbsp; 📅 Fechas
-    </div>
 </div>
 """, unsafe_allow_html=True)
-
 c1, c2, c3 = st.columns(3)
 with c1: st.markdown("<div class='card'><h3>Cusco</h3><p>Paquete 4D/3N<br><b>Desde US$ 259</b></p></div>", unsafe_allow_html=True)
 with c2: st.markdown("<div class='card'><h3>Madrid</h3><p>Vuelo Directo<br><b>Desde US$ 1,040</b></p></div>", unsafe_allow_html=True)
 with c3: st.markdown("<div class='card'><h3>Tampa</h3><p>Vuelo + Auto<br><b>Desde US$ 523</b></p></div>", unsafe_allow_html=True)
 
-# --- 5. CHATBOT FLOTANTE CON IA ---
+# --- 6. CHATBOT FLOTANTE CON RAG ---
 with st.popover("💬"):
-    st.markdown(f"#### ✈️ {modo}") # El título cambia según el modo
+    st.markdown(f"#### ✈️ {modo}")
     st.divider()
     
     if "chat_session" not in st.session_state:
         st.session_state.client = genai.Client()
         
-        # Asignamos el System Prompt según la elección del Sidebar
-        regla_base = " REGLA ESTRICTA: Solo puedes hablar de viajes y turismo de NM Viajes. Si preguntan otra cosa, niégate educadamente."
-        
-        if modo == "Asesor Estándar":
-            sys_prompt = "Eres un asesor de viajes amable y paciente de NM Viajes. Recomiendas paquetes familiares y usas emojis estándar. 🌴" + regla_base
-            saludo = "¡Hola! Soy tu asesor virtual de NM Viajes 🌴. ¿A dónde quieres viajar hoy?"
-        elif modo == "Guía Extremo":
-            sys_prompt = "Eres un guía de deportes extremos de NM Viajes. Tutéalo, usa jerga de mochileros, ten mucha energía y recomienda full adrenalina. 🧗‍♂️🌋" + regla_base
-            saludo = "¡Qué tal viajero! 🎒 Listo para la aventura extrema? ¿A dónde nos fugamos?"
-        else: # Agente VIP Lujo
-            sys_prompt = "Eres un agente VIP de NM Viajes. Eres extremadamente formal, elegante y sofisticado. Trata al usuario de 'Usted' y recomienda solo lujos de 5 estrellas y primera clase. 🥂✨" + regla_base
-            saludo = "Bienvenido a NM Viajes VIP. Es un placer atenderle. ¿Qué destino exclusivo desea explorar hoy? 🥂"
-        
-        # Inyectamos el prompt y la temperatura
-        configuracion = types.GenerateContentConfig(
-            system_instruction=sys_prompt,
-            temperature=temperatura
+        # INSTRUCCIÓN RAG: Le decimos explícitamente que use la información proporcionada
+        regla_base = (
+            " REGLA ESTRICTA: Eres un asesor de NM Viajes. Basa tus respuestas ÚNICAMENTE en la 'Información Interna' "
+            "que se te proporcione. Si te preguntan el precio de un paquete que no está en la información interna, "
+            "di que no tienes el precio exacto en este momento."
         )
         
-        st.session_state.chat_session = st.session_state.client.chats.create(
-            model='gemini-2.5-flash', 
-            config=configuracion
-        )
-        st.session_state.messages = [{"role": "assistant", "content": saludo}]
+        if modo == "Asesor Estándar": sys_prompt = "Eres amable y paciente. " + regla_base
+        elif modo == "Guía Extremo": sys_prompt = "Usa jerga de mochileros, tutéalo y ten mucha energía. " + regla_base
+        else: sys_prompt = "Eres muy formal y elegante. Trata de 'Usted'. " + regla_base
+        
+        configuracion = types.GenerateContentConfig(system_instruction=sys_prompt, temperature=temperatura)
+        st.session_state.chat_session = st.session_state.client.chats.create(model='gemini-2.5-flash', config=configuracion)
+        st.session_state.messages = [{"role": "assistant", "content": "¡Hola! Soy tu asesor virtual de NM Viajes 🌴. ¿A dónde quieres viajar hoy?"}]
         
     chat_box = st.container(height=320, border=False)
     
@@ -114,17 +114,46 @@ with st.popover("💬"):
                 st.markdown(msg["content"])
                 
     if prompt := st.chat_input("Escribe tu duda aquí..."):
+        
+        # Guardar mensaje original del usuario en la UI
         st.session_state.messages.append({"role": "user", "content": prompt})
         with chat_box:
             with st.chat_message("user"):
                 st.markdown(prompt)
                 
             with st.chat_message("assistant"):
-                try:
-                    response = st.session_state.chat_session.send_message(prompt)
-                    texto_ia = response.text
-                except Exception as e:
-                    texto_ia = f"Error: {e}. Intenta recargar la página."
-                st.markdown(texto_ia)
+                # --- FILTRO DE SEGURIDAD (INPUT GUARDRAIL) ---
+                palabras_prohibidas = ["contraseña", "hackear", "estafa", "ilegal", "robo"]
+                if any(palabra in prompt.lower() for palabra in palabras_prohibidas):
+                    st.warning("⚠️ Mensaje bloqueado por políticas de seguridad.")
+                    texto_ia = "Lo siento, mi filtro de seguridad interno me impide procesar esa solicitud."
+                    st.markdown(texto_ia)
+                else:
+                    try:
+                        # --- MAGIA RAG: RECUPERACIÓN DE DATOS ---
+                        # 1. Buscar en ChromaDB los documentos relevantes
+                        resultados = vectorstore.similarity_search(prompt, k=2)
+                        
+                        # 2. Unir los resultados en un solo bloque de texto
+                        contexto_encontrado = "\n".join([res.page_content for res in resultados])
+                        
+                        # 3. Construir un "Prompt Enriquecido" (Esto va a la IA, pero el usuario no lo ve)
+                        prompt_enriquecido = f"""
+                        INFORMACIÓN INTERNA DE NM VIAJES:
+                        {contexto_encontrado}
+                        
+                        PREGUNTA DEL CLIENTE:
+                        {prompt}
+                        """
+                        
+                        # Enviamos el prompt enriquecido a Gemini
+                        response = st.session_state.chat_session.send_message(prompt_enriquecido)
+                        texto_ia = response.text
+                        st.markdown(texto_ia)
+                        
+                    except Exception as e:
+                        texto_ia = f"Error: {e}. Intenta recargar la página."
+                        st.markdown(texto_ia)
         
+        # Guardar respuesta de la IA en el historial visual
         st.session_state.messages.append({"role": "assistant", "content": texto_ia})
