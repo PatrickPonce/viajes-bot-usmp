@@ -52,32 +52,24 @@ st.markdown("""
     .card { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; }
     
     /* Botón flotante */
-    [data-testid="stPopover"] { position: fixed !important; bottom: 30px !important; right: 30px !important; z-index: 9999 !important; }
-    [data-testid="stPopover"] > button { border-radius: 50px !important; width: 65px !important; height: 65px !important; background-color: #E3001B !important; color: white !important; border: none !important; box-shadow: 0px 6px 20px rgba(0,0,0,0.3) !important; font-size: 28px !important; transition: transform 0.2s ease; }
-    [data-testid="stPopover"] > button:hover { transform: scale(1.1); background-color: #cc0018 !important; }
-    [data-testid="stPopoverBody"] { width: 380px !important; height: 550px !important; border-radius: 15px !important; box-shadow: 0px 10px 40px rgba(0,0,0,0.2) !important; padding: 1rem !important; }
+    /* --- Botón flotante del Chatbot (Esfera perfecta) --- */
+    [data-testid="stPopover"] { position: fixed !important; bottom: 40px !important; right: 40px !important; z-index: 99999 !important; width: auto !important; }
+    [data-testid="stPopover"] > button { width: 70px !important; height: 70px !important; border-radius: 50% !important; background-color: #E3001B !important; color: white !important; border: none !important; box-shadow: 0px 8px 25px rgba(227, 0, 27, 0.4) !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 !important; }
+    [data-testid="stPopover"] > button p { font-size: 32px !important; margin: 0 !important; line-height: 1 !important; }
+    [data-testid="stPopoverBody"] { 
+        position: fixed !important;
+        bottom: 120px !important;
+        right: 40px !important;
+        z-index: 999999 !important;
+        width: 380px !important; 
+        height: 80vh !important; 
+        max-height: 750px !important; 
+        border-radius: 15px !important; 
+        box-shadow: 0px 15px 50px rgba(0,0,0,0.3) !important; 
+        padding: 1.5rem !important; 
+    }
     </style>
 """, unsafe_allow_html=True)
-
-# --- 4. PANEL LATERAL (SIDEBAR) ---
-with st.sidebar:
-    st.header("⚙️ Panel de Control IA")
-    temperatura = st.slider("Creatividad (Temperatura)", 0.0, 1.0, 0.2) # Bajamos la temperatura para que RAG sea más exacto
-    modo = st.selectbox("Personalidad del Agente", ["Asesor Estándar", "Guía Extremo", "Agente VIP Lujo"])
-    st.divider()
-    if st.button("🗑️ Limpiar Historial"):
-        if "chat_session" in st.session_state:
-            del st.session_state.chat_session
-
-if "current_modo" not in st.session_state:
-    st.session_state.current_modo = modo
-    st.session_state.current_temp = temperatura
-
-if st.session_state.current_modo != modo or st.session_state.current_temp != temperatura:
-    st.session_state.current_modo = modo
-    st.session_state.current_temp = temperatura
-    if "chat_session" in st.session_state:
-        del st.session_state.chat_session
 
 mi_logo_local = cargar_imagen_local("imagenes/Logo_nmviajes.svg")
 mi_icono_tiendas = cargar_imagen_local("imagenes/stores.svg")
@@ -539,17 +531,55 @@ components.html(codigo_html_real, height=800, scrolling=True)
 
 # --- 6. CHATBOT FLOTANTE CON RAG ---
 with st.popover("💬"):
+    
+    # 1. PRIMERO definimos la variable 'modo' en el menú de configuración
+    with st.expander("⚙️ Configuración del Bot"):
+        modo = st.selectbox("Personalidad", ["Asesor Estándar", "Guía Extremo", "Agente VIP Lujo"])
+        temperatura = st.slider("Creatividad (Temp)", 0.0, 1.0, 0.2)
+        if st.button("🗑️ Limpiar Historial", use_container_width=True):
+            if "chat_session" in st.session_state:
+                del st.session_state.chat_session
+                st.session_state.messages = []
+                
+    # 2. LUEGO usamos la variable 'modo' para el título
     st.markdown(f"#### ✈️ {modo}")
     st.divider()
+    
+    # Validación para recargar IA si cambias la personalidad
+    if "current_modo" not in st.session_state:
+        st.session_state.current_modo = modo
+        st.session_state.current_temp = temperatura
+
+    if st.session_state.current_modo != modo or st.session_state.current_temp != temperatura:
+        st.session_state.current_modo = modo
+        st.session_state.current_temp = temperatura
+        if "chat_session" in st.session_state:
+            del st.session_state.chat_session
+            st.session_state.messages = []
     
     if "chat_session" not in st.session_state:
         st.session_state.client = genai.Client()
         
         # INSTRUCCIÓN RAG: Le decimos explícitamente que use la información proporcionada
+        # INSTRUCCIÓN RAG: Optimizada para ser 100% conversacional y secuencial
+        # --- PROMPT MAESTRO: GUION DE VENTAS SECUENCIAL ---
         regla_base = (
-            " REGLA ESTRICTA: Eres un asesor de NM Viajes. Basa tus respuestas ÚNICAMENTE en la 'Información Interna' "
-            "que se te proporcione. Si te preguntan el precio de un paquete que no está en la información interna, "
-            "di que no tienes el precio exacto en este momento."
+            "Eres el Concierge Experto de NM Viajes. Tu objetivo es tener una conversación súper natural, humana y fluida, "
+            "guiando al cliente paso a paso hasta cerrar una venta. "
+            "REGLAS DE FORMATO (¡MUY IMPORTANTE!): NUNCA uses subtítulos como 'Paso 1', 'Análisis', o 'Cierre'. "
+            "Habla como un humano en WhatsApp, usa párrafos cortos, emojis (✈️, 🌴) y **negritas** para los precios.\n\n"
+            "SIGUE ESTE GUION DE CONVERSACIÓN SECUENCIAL (UN PASO A LA VEZ):\n"
+            "1. DESCUBRIMIENTO: Si el cliente solo menciona un destino, dale UN (1) tip cultural breve y pregúntale: "
+            "'¿En qué fecha te gustaría viajar y con cuántas personas?'. NO ofrezcas precios todavía.\n"
+            "2. PRESENTACIÓN: Cuando ya sepas el destino y la fecha, usa la 'Información Interna' y ofrécele las opciones disponibles "
+            "(ej. 'Tengo el Vuelo solo a X precio, y el Paquete completo a Y precio'). Termina preguntando: '¿Qué opción suena mejor para ti?'.\n"
+            "3. PROFUNDIZACIÓN Y CROSS-SELLING: Si el cliente elige el Vuelo, ofrécele agregar un hotel. Si elige el Paquete, "
+            "detállale qué incluye. Pregúntale: '¿Te gustaría que vayamos separando los espacios para ti?'.\n"
+            "4. MANEJO DE CAMBIOS (VARIABLES): Si el cliente cambia de destino, fecha o presupuesto de la nada, adáptate felizmente, "
+            "olvida lo anterior y vuelve al Paso 2 buscando nuevas opciones en tu catálogo interno.\n"
+            "5. CIERRE: Si el cliente dice 'Sí, lo quiero' o 'Comprar', felicítalo y dile que un agente humano de reservas se comunicará "
+            "con él en los próximos 5 minutos para procesar el pago seguro.\n\n"
+            "RECUERDA: Precios e inclusiones SOLO de la Información Interna. Si no hay el destino, di que consultarás con reservas."
         )
         
         if modo == "Asesor Estándar": sys_prompt = "Eres amable y paciente. " + regla_base
@@ -586,7 +616,7 @@ with st.popover("💬"):
                     try:
                         # --- MAGIA RAG: RECUPERACIÓN DE DATOS ---
                         # 1. Buscar en ChromaDB los documentos relevantes
-                        resultados = vectorstore.similarity_search(prompt, k=2)
+                        resultados = vectorstore.similarity_search(prompt, k=6)
                         
                         # 2. Unir los resultados en un solo bloque de texto
                         contexto_encontrado = "\n".join([res.page_content for res in resultados])

@@ -1,16 +1,67 @@
-Destino,Duracion,Precio_Total_USD,Incluye,Requiere_Visa
-Cusco Clásico,5 días / 4 noches,580,Vuelo + Hotel 3* + Traslados + Tour Machu Picchu,No
-Cancún Resort,6 días / 5 noches,1250,Vuelo + Hotel All-Inclusive + Traslados,Sí
-Miami Beach,5 días / 4 noches,980,Vuelo + Hotel 4* + Traslados + Seguro,Sí
-Punta Cana Paraíso,7 días / 6 noches,1100,Vuelo + Hotel All-Inclusive + Actividades,No
-Madrid Cultural,8 días / 7 noches,1850,Vuelo + Hotel 3* + Desayunos + Tours,No
-París Romántico,7 días / 6 noches,2100,Vuelo + Hotel 4* + Crucero por el Sena,No
-Roma Histórica,6 días / 5 noches,1950,Vuelo + Hotel 3* + Tour Coliseo y Vaticano,No
-Buenos Aires Tango,5 días / 4 noches,750,Vuelo + Hotel 4* + Cena Show + City Tour,No
-Río de Janeiro,6 días / 5 noches,890,Vuelo + Hotel 3* + Tour Cristo Redentor,No
-San Andrés Sol,5 días / 4 noches,820,Vuelo + Hotel All-Inclusive + Traslados,No
-Cartagena Colonial,5 días / 4 noches,780,Vuelo + Hotel 4* + Tour Ciudad Amurallada,No
-Orlando Mágico,7 días / 6 noches,1600,Vuelo + Hotel 3* + Entradas a 4 Parques Disney,Sí
-Tarapoto Selva,4 días / 3 noches,450,Vuelo + Hotel Ecológico + Tour Laguna Azul,No
-Arequipa y Colca,4 días / 3 noches,520,Vuelo + Hotel 3* + Tour Cañón del Colca,No
-Piura Playas,4 días / 3 noches,480,Vuelo + Hotel 4* en Máncora + Traslados,No
+Tipo_Servicio,Destino,Duracion,Precio_Total_USD,Incluye,Requiere_Visa
+Paquete,París Romántico,7 días / 6 noches,2100,Vuelo + Hotel 4* + Crucero por el Sena + Traslados,No
+Vuelo,París,Solo Vuelo,950,Vuelo directo Lima-París (Ida y Vuelta) con 1 maleta,No
+Tip_Viaje,Francia,N/A,0,La mejor época para ir es primavera. Imperdible visitar la Torre Eiffel y el Museo del Louvre.,No
+Paquete,Cusco Clásico,5 días / 4 noches,580,Vuelo + Hotel 3* + Traslados + Tour Machu Picchu en tren panorámico,No
+Vuelo,Cusco,Solo Vuelo,120,Vuelo Lima-Cusco (Ida y Vuelta) aerolínea low cost,No
+Tip_Viaje,Cusco,N/A,0,Lleva ropa abrigadora y pastillas para el soroche. Ideal viajar de mayo a octubre.,No
+Paquete,Miami Beach,5 días / 4 noches,980,Vuelo + Hotel 4* frente al mar + Traslados,Sí
+Vuelo,Miami,Solo Vuelo,450,Vuelo directo Lima-Miami (Ida y Vuelta) con maleta de bodega,Sí
+Tip_Viaje,Miami,N/A,0,Ideal para compras de tecnología y ropa. Alquilar auto es muy recomendado.,Sí
+Paquete,Cancún Resort,6 días / 5 noches,1250,Vuelo + Hotel 5* All-Inclusive + Traslados VIP,Sí
+Vuelo,Cancún,Solo Vuelo,350,Vuelo Lima-Cancún (Ida y Vuelta) directo,Sí
+Tip_Viaje,Cancún,N/A,0,No te pierdas Chichén Itzá y nadar en los cenotes. El bloqueador biodegradable es obligatorio.,Sí
+Paquete,Punta Cana Paraíso,7 días / 6 noches,1100,Vuelo + Hotel 4* All-Inclusive + Tour Isla Saona,No
+Vuelo,Punta Cana,Solo Vuelo,400,Vuelo directo Lima-Punta Cana (Ida y Vuelta),No
+Tip_Viaje,República Dominicana,N/A,0,Clima tropical perfecto todo el año. La gente es súper alegre y hospitalaria.,No
+Paquete,Madrid Cultural,8 días / 7 noches,1850,Vuelo + Hotel 3* + Desayunos + City Tour y excursión a Toledo,No
+Vuelo,Madrid,Solo Vuelo,850,Vuelo directo Lima-Madrid (Ida y Vuelta),No
+Tip_Viaje,España,N/A,0,Excelente gastronomía (tapas y paella). El tren y metro son la mejor forma de moverse.,No
+Paquete,Roma Histórica,6 días / 5 noches,1950,Vuelo + Hotel 3* + Tour Coliseo y Museos Vaticanos con entradas,No
+Vuelo,Roma,Solo Vuelo,1050,Vuelo Lima-Roma (Ida y Vuelta) con 1 escala en Europa,No
+Tip_Viaje,Italia,N/A,0,Reserva las entradas a atracciones con mucha anticipación. Come pizza y gelato artesanal.,No
+Paquete,Buenos Aires Tango,5 días / 4 noches,750,Vuelo + Hotel 4* + Cena Show de Tango + City Tour por Caminito,No
+Vuelo,Buenos Aires,Solo Vuelo,280,Vuelo directo Lima-Buenos Aires (Ida y Vuelta),No
+Tip_Viaje,Argentina,N/A,0,Lleva dólares físicos para obtener mejor tipo de cambio. Prueba sus famosas carnes y vinos.,No
+Paquete,Río de Janeiro,6 días / 5 noches,890,Vuelo + Hotel 3* en Copacabana + Tour Cristo Redentor y Pan de Azúcar,No
+Vuelo,Río de Janeiro,Solo Vuelo,320,Vuelo directo Lima-Río (Ida y Vuelta),No
+Tip_Viaje,Brasil,N/A,0,No olvides tu ropa de baño. Febrero es ideal si quieres vivir la experiencia del Carnaval.,No
+Paquete,Orlando Mágico,7 días / 6 noches,1600,Vuelo + Hotel 3* dentro del resort + Entradas a 4 Parques de Disney,Sí
+Vuelo,Orlando,Solo Vuelo,480,Vuelo Lima-Orlando (Ida y Vuelta) con 1 escala,Sí
+Tip_Viaje,Orlando,N/A,0,Lleva zapatillas muy cómodas porque caminarás todo el día. Descarga la app de los parques antes de ir.,Sí
+Paquete,Londres Imperial,7 días / 6 noches,2200,Vuelo + Hotel 4* + Desayunos + Tour Panorámico y Abadía de Westminster,No
+Vuelo,Londres,Solo Vuelo,1000,Vuelo Lima-Londres (Ida y Vuelta) con 1 escala,No
+Tip_Viaje,Reino Unido,N/A,0,El metro o Tube es la forma más rápida de moverse. Lleva siempre un paraguas por el clima cambiante.,No
+Paquete,Ámsterdam Clásico,6 días / 5 noches,1950,Vuelo + Hotel 3* + Paseo en bote por los canales + Entradas a museos,No
+Vuelo,Ámsterdam,Solo Vuelo,980,Vuelo Lima-Ámsterdam (Ida y Vuelta) con 1 escala,No
+Tip_Viaje,Países Bajos,N/A,0,Alquilar una bicicleta es la mejor forma de explorar la ciudad como un local auténtico.,No
+Paquete,Las Vegas Diversión,5 días / 4 noches,1350,Vuelo + Hotel en el Strip + Tour al Gran Cañón en helicóptero,Sí
+Vuelo,Las Vegas,Solo Vuelo,650,Vuelo Lima-Las Vegas (Ida y Vuelta) con 1 escala,Sí
+Tip_Viaje,Las Vegas,N/A,0,Visitar las atracciones temáticas de los hoteles es gratis. Usa calzado cómodo para caminar por el Strip.,Sí
+Paquete,México Histórico,5 días / 4 noches,850,Vuelo + Hotel 4* + Desayunos + Tour a las Pirámides de Teotihuacán,Sí
+Vuelo,Ciudad de México,Solo Vuelo,400,Vuelo directo Lima-Ciudad de México (Ida y Vuelta),Sí
+Tip_Viaje,México,N/A,0,Prueba los auténticos tacos al pastor y viaja en el metro que es muy económico y rápido.,Sí
+Paquete,Bogotá Cultural,4 días / 3 noches,550,Vuelo + Hotel 4* + Ascenso a Monserrate + Tour por La Candelaria,No
+Vuelo,Bogotá,Solo Vuelo,250,Vuelo directo Lima-Bogotá (Ida y Vuelta),No
+Tip_Viaje,Colombia,N/A,0,Lleva abrigo porque el clima es frío y cambiante a pesar de ser Sudamérica. El café es imperdible.,No
+Paquete,Santiago y Viñedos,5 días / 4 noches,650,Vuelo + Hotel 4* + Tour a viñedos de Concha y Toro con cata,No
+Vuelo,Santiago de Chile,Solo Vuelo,220,Vuelo directo Lima-Santiago (Ida y Vuelta),No
+Tip_Viaje,Chile,N/A,0,El metro de Santiago es excelente. No dejes de probar el clásico pastel de choclo y sus empanadas.,No
+Paquete,Cartagena Encantadora,5 días / 4 noches,820,Vuelo + Hotel Boutique + Tour por la Ciudad Amurallada y Castillo,No
+Vuelo,Cartagena,Solo Vuelo,350,Vuelo Lima-Cartagena (Ida y Vuelta) directo,No
+Tip_Viaje,Cartagena,N/A,0,El clima es muy cálido todo el año. Disfruta de una caminata nocturna por las calles coloniales.,No
+Paquete,Arequipa y Colca,4 días / 3 noches,320,Vuelo + Hotel 3* + Traslados + Tour de 2 días al Cañón del Colca,No
+Vuelo,Arequipa,Solo Vuelo,80,Vuelo directo Lima-Arequipa (Ida y Vuelta) low cost,No
+Tip_Viaje,Arequipa,N/A,0,Toma mate de coca para evitar el mal de altura. Obligatorio comer en una picantería tradicional.,No
+Paquete,Playas del Norte,4 días / 3 noches,450,Vuelo a Talara + Traslados a Máncora + Hotel frente al mar,No
+Vuelo,Talara,Solo Vuelo,90,Vuelo directo Lima-Talara (Ida y Vuelta),No
+Tip_Viaje,Máncora,N/A,0,Lleva mucho bloqueador solar. Es un destino ideal para el surf y comer el mejor ceviche de mero.,No
+Paquete,Selva Amazónica,4 días / 3 noches,480,Vuelo + Lodge Todo Incluido + Tours en bote y caminatas guiadas,No
+Vuelo,Iquitos,Solo Vuelo,110,Vuelo directo Lima-Iquitos (Ida y Vuelta),No
+Tip_Viaje,Iquitos,N/A,0,Usa repelente constantemente y viste ropa ligera. Visita el centro de rescate de manatíes.,No
+Paquete,Japón Fascinante,10 días / 9 noches,3500,Vuelo + Hotel 3* + Japan Rail Pass de 7 días + Tour en Tokio,Sí
+Vuelo,Tokio,Solo Vuelo,1800,Vuelo Lima-Tokio (Ida y Vuelta) con 2 escalas,Sí
+Tip_Viaje,Japón,N/A,0,La primavera (marzo-abril) es ideal para ver los cerezos. La cultura del respeto y el silencio en el tren es primordial.,Sí
+Paquete,Lujo en Dubai,7 días / 6 noches,2800,Vuelo + Hotel 5* + Desayunos + Safari en el desierto con cena beduina,Sí
+Vuelo,Dubai,Solo Vuelo,1400,Vuelo Lima-Dubai (Ida y Vuelta) con 1 escala,Sí
+Tip_Viaje,Emiratos Árabes,N/A,0,Evita viajar en verano por el calor extremo. Para subir al Burj Khalifa debes comprar tu entrada con meses de anticipación.,Sí

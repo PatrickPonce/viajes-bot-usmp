@@ -19,3 +19,5 @@ Un asistente virtual inteligente desarrollado con Python y Streamlit para la age
 2. Instala las dependencias: `pip install -r requirements.txt`
 3. Crea un archivo `.env` en la raíz del proyecto y añade tu API Key: `GEMINI_API_KEY=tu_llave_aqui`
 4. Ejecuta la aplicación: `streamlit run app.py`
+
+python -m streamlit run app.py
